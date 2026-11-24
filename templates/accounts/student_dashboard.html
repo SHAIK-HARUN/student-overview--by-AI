@@ -1,0 +1,135 @@
+{% extends "base/base.html" %}
+{% block title %}Dashboard — Student AI Portal{% endblock %}
+{% block page_title %}📊 Student Dashboard{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+  <!-- Stat cards -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card primary">
+      <i class="bi bi-graph-up-arrow stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ total_predictions }}</div>
+        <div class="stat-label">Total Predictions</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card success">
+      <i class="bi bi-star-fill stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ excellent_count }}</div>
+        <div class="stat-label">Excellent Profiles</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card danger">
+      <i class="bi bi-exclamation-triangle-fill stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ poor_count }}</div>
+        <div class="stat-label">Needs Attention</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card info">
+      <i class="bi bi-person-circle stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ student.username|slice:":8" }}</div>
+        <div class="stat-label">Your Account</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Quick Actions -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Quick Actions</div>
+      <div class="card-body">
+        <a href="{% url 'predict' %}" class="btn btn-primary w-100 mb-3 py-3 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-cpu-fill fs-5"></i><span>Run New Prediction</span>
+        </a>
+        <a href="{% url 'profile_update' %}" class="btn btn-outline-secondary w-100 mb-3 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-pencil-square"></i><span>Update Profile & Contacts</span>
+        </a>
+        <a href="{% url 'prediction_history' %}" class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-clock-history"></i><span>View All Results</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Summary -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-person-badge text-primary me-2"></i>Profile Summary</div>
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div style="width:60px;height:60px;border-radius:1rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;font-weight:800;">
+            {{ student.full_name|first|upper|default:student.username|first|upper }}
+          </div>
+          <div>
+            <div class="fw-700 fs-5">{{ student.full_name|default:student.username }}</div>
+            <div class="text-muted small">{{ student.email }}</div>
+          </div>
+        </div>
+        <table class="table table-sm table-borderless">
+          <tr><td class="text-muted small">📱 Phone</td><td class="small fw-500">{{ student.phoneno|default:"—" }}</td></tr>
+          <tr><td class="text-muted small">📍 City</td><td class="small fw-500">{{ student.city|default:"—" }}, {{ student.country|default:"—" }}</td></tr>
+          <tr><td class="text-muted small">👨‍👩‍👦 Parent</td>
+              <td class="small fw-500">
+                {% if student.parent_name %}{{ student.parent_name }}
+                  {% if student.parent_phone %}<br><span class="text-muted">{{ student.parent_phone }}</span>{% endif %}
+                {% else %}<span class="text-warning small"><i class="bi bi-exclamation-triangle"></i> Not set</span>{% endif %}
+              </td></tr>
+          <tr><td class="text-muted small">🎓 Teacher</td>
+              <td class="small fw-500">
+                {% if student.teacher_name %}{{ student.teacher_name }}
+                  {% if student.teacher_phone %}<br><span class="text-muted">{{ student.teacher_phone }}</span>{% endif %}
+                {% else %}<span class="text-warning small"><i class="bi bi-exclamation-triangle"></i> Not set</span>{% endif %}
+              </td></tr>
+        </table>
+        {% if not student.parent_email and not student.teacher_email %}
+        <div class="alert alert-warning py-2 small mt-2">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          Add parent & teacher contacts so notifications reach them automatically.
+          <a href="{% url 'profile_update' %}" class="fw-600">Update now →</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Results -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-clock-history text-info me-2"></i>Recent Predictions</div>
+      <div class="card-body p-0">
+        {% if predictions %}
+          <div class="list-group list-group-flush">
+            {% for pred in predictions %}
+            <a href="{% url 'result_view' pred.pk %}" class="list-group-item list-group-item-action px-4 py-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-600 small">{{ pred.fid }}</div>
+                  <div class="text-muted" style="font-size:.78rem;">{{ pred.predicted_at|date:"d M Y, h:i A" }}</div>
+                </div>
+                <span class="badge badge-{{ pred.prediction|lower }}">{{ pred.prediction }}</span>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-graph-up fs-1 d-block mb-2 opacity-25"></i>
+            <p class="small">No predictions yet.<br>Run your first prediction!</p>
+            <a href="{% url 'predict' %}" class="btn btn-sm btn-primary">Start Now</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

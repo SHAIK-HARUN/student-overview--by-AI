@@ -1,0 +1,114 @@
+{% extends "base/base.html" %}
+{% block title %}Admin Dashboard — Student AI Portal{% endblock %}
+{% block page_title %}🛡️ Admin Dashboard{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card purple">
+      <i class="bi bi-mortarboard-fill stat-icon"></i>
+      <div><div class="stat-num">{{ total_teachers|default:0 }}</div><div class="stat-label">Class Teachers</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card primary">
+      <i class="bi bi-people-fill stat-icon"></i>
+      <div><div class="stat-num">{{ total_students|default:0 }}</div><div class="stat-label">Total Students</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card info">
+      <i class="bi bi-graph-up-arrow stat-icon"></i>
+      <div><div class="stat-num">{{ total_predictions|default:0 }}</div><div class="stat-label">Total Predictions</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card success">
+      <i class="bi bi-bell-fill stat-icon"></i>
+      <div><div class="stat-num">{{ total_notifications|default:0 }}</div><div class="stat-label">Notifications Sent</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Distribution -->
+<div class="row g-4 mb-4">
+  <div class="col-sm-3">
+    <div class="stat-card success" style="padding:1rem 1.25rem;">
+      <i class="bi bi-star-fill stat-icon" style="font-size:1.6rem;"></i>
+      <div><div class="stat-num" style="font-size:1.5rem;">{{ excellent }}</div><div class="stat-label">Excellent</div></div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="stat-card info" style="padding:1rem 1.25rem;">
+      <i class="bi bi-hand-thumbs-up-fill stat-icon" style="font-size:1.6rem;"></i>
+      <div><div class="stat-num" style="font-size:1.5rem;">{{ good }}</div><div class="stat-label">Good</div></div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="stat-card warning" style="padding:1rem 1.25rem;">
+      <i class="bi bi-dash-circle-fill stat-icon" style="font-size:1.6rem;"></i>
+      <div><div class="stat-num" style="font-size:1.5rem;">{{ average }}</div><div class="stat-label">Average</div></div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="stat-card danger" style="padding:1rem 1.25rem;">
+      <i class="bi bi-exclamation-triangle-fill stat-icon" style="font-size:1.6rem;"></i>
+      <div><div class="stat-num" style="font-size:1.5rem;">{{ poor }}</div><div class="stat-label">Poor</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Quick Actions -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Admin Actions</div>
+      <div class="card-body">
+        <a href="{% url 'train_model' %}" class="btn btn-primary w-100 mb-3 py-3 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-cpu-fill fs-5"></i><span>Train AI Models</span>
+        </a>
+        <a href="{% url 'admin_charts' %}" class="btn btn-outline-primary w-100 mb-2 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-bar-chart-fill"></i><span>View All Charts</span>
+        </a>
+        <a href="{% url 'view_students' %}" class="btn btn-outline-secondary w-100 mb-2 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-people-fill"></i><span>View Students</span>
+        </a>
+        <a href="{% url 'view_notifications' %}" class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-bell-fill"></i><span>Notification Logs</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Predictions Table -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-graph-up-arrow text-primary me-2"></i>Recent Predictions</span>
+        <a href="{% url 'view_predictions' %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="bg-light">
+            <tr><th>Student</th><th>Math</th><th>Reading</th><th>Writing</th><th>Profile</th><th>Notified</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            {% for pred in recent_preds %}
+            <tr>
+              <td class="fw-600">{{ pred.fid }}<br><span class="text-muted small">{{ pred.student.username|default:"—" }}</span></td>
+              <td>{{ pred.math_score }}</td>
+              <td>{{ pred.reading_score }}</td>
+              <td>{{ pred.writing_score }}</td>
+              <td><span class="badge badge-{{ pred.prediction|lower }}">{{ pred.prediction }}</span></td>
+              <td>{% if pred.notification_sent %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-muted"></i>{% endif %}</td>
+              <td class="text-muted small">{{ pred.predicted_at|date:"d M Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-3">No predictions yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

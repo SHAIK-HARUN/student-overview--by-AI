@@ -1,0 +1,87 @@
+{% extends "base/base.html" %}
+{% block title %}Detection Ratio — Admin{% endblock %}
+{% block page_title %}📊 Profile Detection Ratios{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Ratio Distribution</div>
+      <div class="card-body">
+        <div class="chart-container" style="height:300px;">
+          <canvas id="ratioDoughnut"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-table text-primary me-2"></i>Ratios Summary Table</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="bg-light">
+              <tr>
+                <th>Profile Category</th>
+                <th>Student Count</th>
+                <th>Percentage Ratio</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in ratios %}
+              <tr>
+                <td class="fw-600"><span class="badge badge-{{ r.label|lower }} px-2 py-1">{{ r.label }}</span></td>
+                <td>{{ r.count }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-700">{{ r.ratio|floatformat:1 }}%</span>
+                    <div class="progress flex-grow-1" style="height:8px;">
+                      <div class="progress-bar bg-primary" style="width:{{ r.ratio }}%"></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center text-muted py-4">No prediction records available yet to calculate ratios.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-center">
+        <a href="{% url 'admin_charts' %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart-line me-1"></i>Open Advanced Charts</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ratioLabels = [{% for r in ratios %}"{{ r.label }}",{% endfor %}];
+const ratioData = [{% for r in ratios %}{{ r.ratio }},{% endfor %}];
+const colors = ['#10b981', '#06b6d4', '#f59e0b', '#ef4444'];
+
+if (ratioLabels.length > 0) {
+  const ctx = document.getElementById('ratioDoughnut').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ratioLabels,
+      datasets: [{
+        data: ratioData,
+        backgroundColor: colors.slice(0, ratioLabels.length),
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,393 @@
+{% extends "base/base.html" %}
+{% block title %}Algorithm Analytics Charts — Admin{% endblock %}
+{% block page_title %}📊 Algorithm & AI Analytics Charts{% endblock %}
+{% block content %}
+
+<!-- Chart Type Selector -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="fw-700 text-muted small me-2">SELECT CHART TYPE:</span>
+      {% for ct, label, icon in chart_types %}
+      <a href="?chart={{ ct }}"
+         class="btn btn-sm {% if chart_type == ct %}btn-primary{% else %}btn-outline-secondary{% endif %} d-flex align-items-center gap-1">
+        <i class="bi bi-{{ icon }}"></i> {{ label }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Algorithm Accuracy Chart -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-cpu-fill text-primary me-2"></i>Algorithm Accuracy Comparison</span>
+        <div class="d-flex gap-2">
+          <a href="?chart=bar" class="btn btn-xs btn-sm {% if chart_type == 'bar' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Bar</a>
+          <a href="?chart=line" class="btn btn-xs btn-sm {% if chart_type == 'line' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Line</a>
+          <a href="?chart=radar" class="btn btn-xs btn-sm {% if chart_type == 'radar' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Radar</a>
+          <a href="?chart=horizontalbar" class="btn btn-xs btn-sm {% if chart_type == 'horizontalbar' %}btn-primary{% else %}btn-outline-secondary{% endif %}">H-Bar</a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container" style="height:360px;">
+          <canvas id="algoChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prediction Distribution -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-pie-chart-fill text-warning me-2"></i>Profile Distribution</span>
+        <div class="d-flex gap-2">
+          <a href="?chart=pie" class="btn btn-xs btn-sm {% if chart_type == 'pie' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Pie</a>
+          <a href="?chart=doughnut" class="btn btn-xs btn-sm {% if chart_type == 'doughnut' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Doughnut</a>
+          <a href="?chart=polararea" class="btn btn-xs btn-sm {% if chart_type == 'polararea' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Polar</a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container" style="height:280px;">
+          <canvas id="distChart"></canvas>
+        </div>
+        <div id="dist-legend" class="d-flex flex-wrap gap-2 justify-content-center mt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-metric radar -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-activity text-success me-2"></i>Multi-Metric Radar (All Algorithms)</div>
+      <div class="card-body">
+        <div class="chart-container" style="height:320px;">
+          <canvas id="radarMulti"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Execution Time Bar -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-stopwatch-fill text-danger me-2"></i>Execution Time (seconds)</div>
+      <div class="card-body">
+        <div class="chart-container" style="height:320px;">
+          <canvas id="timeChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Line — All Metrics Trend -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-graph-up text-info me-2"></i>Algorithm Performance — All Metrics Line View</div>
+      <div class="card-body">
+        <div class="chart-container" style="height:320px;">
+          <canvas id="lineAll"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stacked bar – usage & accuracy -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-bar-chart-steps text-purple me-2"></i>Accuracy vs F1 Score vs Precision vs Recall</div>
+      <div class="card-body">
+        <div class="chart-container" style="height:320px;">
+          <canvas id="stackedBar"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bubble chart – accuracy vs time -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-collection-fill text-secondary me-2"></i>Accuracy vs Execution Time</div>
+      <div class="card-body">
+        <div class="chart-container" style="height:320px;">
+          <canvas id="bubbleChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accuracy Table -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-table text-secondary me-2"></i>Detailed Algorithm Metrics Table</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="bg-light">
+              <tr>
+                <th>#</th>
+                <th>Algorithm</th>
+                <th>Accuracy %</th>
+                <th>Precision %</th>
+                <th>Recall %</th>
+                <th>F1-Score %</th>
+                <th>Exec. Time (s)</th>
+                <th>Performance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for algo in algo_table %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td class="fw-600">{{ algo.name }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-700">{{ algo.accuracy|floatformat:1 }}</span>
+                    <div class="progress flex-grow-1" style="height:8px;min-width:80px;">
+                      <div class="progress-bar bg-primary" style="width:{{ algo.accuracy }}%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ algo.precision_score|floatformat:1 }}</td>
+                <td>{{ algo.recall_score|floatformat:1 }}</td>
+                <td>{{ algo.f1_score|floatformat:1 }}</td>
+                <td>{{ algo.execution_time }}</td>
+                <td>
+                  {% if algo.accuracy >= 85 %}<span class="badge bg-success">Excellent</span>
+                  {% elif algo.accuracy >= 70 %}<span class="badge bg-primary">Good</span>
+                  {% elif algo.accuracy >= 55 %}<span class="badge bg-warning text-dark">Average</span>
+                  {% else %}<span class="badge bg-danger">Poor</span>{% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="8" class="text-center text-muted py-4">
+                No training data yet. <a href="{% url 'train_model' %}">Train the model first.</a>
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data from Django ──────────────────────────────
+const algoData  = {{ algo_data_json|safe }};
+const distData  = {{ pred_dist_json|safe }};
+const chartType = "{{ chart_type }}";
+
+const COLORS = [
+  '#4f46e5','#06b6d4','#10b981','#f59e0b',
+  '#ef4444','#8b5cf6','#ec4899','#84cc16',
+];
+const DIST_COLORS = ['#10b981','#06b6d4','#f59e0b','#ef4444'];
+
+// ── Helper ────────────────────────────────────────
+function makeGradient(ctx, c1, c2){
+  const g = ctx.createLinearGradient(0,0,0,400);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  return g;
+}
+
+// ── 1. Main Accuracy Chart (switchable) ──────────
+(function(){
+  const ctx = document.getElementById('algoChart').getContext('2d');
+  let type = 'bar';
+  let horizontal = false;
+  if(chartType==='line')           type='line';
+  else if(chartType==='radar')     type='radar';
+  else if(chartType==='horizontalbar'){ type='bar'; horizontal=true; }
+
+  const cfg = {
+    type: type,
+    data:{
+      labels: algoData.labels,
+      datasets:[
+        { label:'Accuracy %', data: algoData.accuracy,
+          backgroundColor: type==='line' ? 'rgba(79,70,229,.15)' : COLORS,
+          borderColor: type==='line'||type==='radar' ? '#4f46e5' : COLORS,
+          borderWidth:2, fill:type==='line', tension:.4, pointRadius:5 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      indexAxis: horizontal ? 'y' : 'x',
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+'%'}} },
+      scales: type==='radar' ? {
+        r:{ beginAtZero:true, max:100, ticks:{stepSize:25,font:{size:10}}, pointLabels:{font:{size:11}} }
+      } : {
+        y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'} },
+        x:{ ticks:{font:{size:11}} }
+      }
+    }
+  };
+  if(type==='radar') delete cfg.options.scales.y;
+  new Chart(ctx, cfg);
+})();
+
+// ── 2. Distribution Chart ─────────────────────────
+(function(){
+  const ctx = document.getElementById('distChart').getContext('2d');
+  let type = 'doughnut';
+  if(chartType==='pie')       type='pie';
+  if(chartType==='polararea') type='polarArea';
+
+  new Chart(ctx, {
+    type: type,
+    data:{ labels: distData.labels,
+      datasets:[{ data: distData.ratios, backgroundColor: DIST_COLORS,
+        borderWidth:2, borderColor:'#fff' }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.label+': '+c.raw.toFixed(1)+'%'}}
+      }
+    }
+  });
+
+  // Custom legend
+  const leg = document.getElementById('dist-legend');
+  distData.labels.forEach((l,i)=>{
+    leg.innerHTML += `<div class="d-flex align-items-center gap-1 small">
+      <div style="width:12px;height:12px;border-radius:3px;background:${DIST_COLORS[i]};"></div>
+      <span>${l}: <strong>${distData.ratios[i]?.toFixed(1)}%</strong></span></div>`;
+  });
+})();
+
+// ── 3. Multi-metric Radar ─────────────────────────
+(function(){
+  const ctx = document.getElementById('radarMulti').getContext('2d');
+  const metrics = ['Accuracy','Precision','Recall','F1 Score'];
+  const metricKeys = ['accuracy','precision','recall','f1'];
+  const datasets = algoData.labels.map((name,i)=>({
+    label: name,
+    data: metricKeys.map(k=>algoData[k]?.[i] || 0),
+    backgroundColor: COLORS[i]+'33',
+    borderColor: COLORS[i],
+    borderWidth:2, pointRadius:3,
+  }));
+  new Chart(ctx,{
+    type:'radar',
+    data:{ labels: metrics, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{ r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:10}}} },
+      plugins:{ legend:{position:'right',labels:{font:{size:10},boxWidth:12}} }
+    }
+  });
+})();
+
+// ── 4. Execution Time Bar ─────────────────────────
+(function(){
+  const ctx = document.getElementById('timeChart').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: algoData.labels,
+      datasets:[{ label:'Execution Time (s)', data: algoData.execution_time,
+        backgroundColor:'#ef4444cc', borderColor:'#ef4444', borderWidth:1,
+        borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{beginAtZero:true, ticks:{callback:v=>v+'s'}} }
+    }
+  });
+})();
+
+// ── 5. All-Metrics Line ───────────────────────────
+(function(){
+  const ctx = document.getElementById('lineAll').getContext('2d');
+  const metricCfg = [
+    {key:'accuracy', label:'Accuracy %', color:'#4f46e5'},
+    {key:'precision', label:'Precision %', color:'#10b981'},
+    {key:'recall', label:'Recall %', color:'#f59e0b'},
+    {key:'f1', label:'F1-Score %', color:'#ef4444'},
+  ];
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels: algoData.labels,
+      datasets: metricCfg.map(m=>({
+        label: m.label,
+        data: algoData[m.key] || [],
+        borderColor: m.color,
+        backgroundColor: m.color+'22',
+        borderWidth:2, tension:.4, fill:false, pointRadius:5,
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top',labels:{font:{size:11},boxWidth:14}} },
+      scales:{
+        y:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}},
+        x:{ticks:{font:{size:11}}}
+      }
+    }
+  });
+})();
+
+// ── 6. Stacked Bar ────────────────────────────────
+(function(){
+  const ctx = document.getElementById('stackedBar').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: algoData.labels,
+      datasets:[
+        {label:'Accuracy %', data:algoData.accuracy, backgroundColor:'#4f46e5cc', borderRadius:0},
+        {label:'F1-Score %', data:algoData.f1, backgroundColor:'#10b981cc', borderRadius:0},
+        {label:'Precision %', data:algoData.precision, backgroundColor:'#f59e0bcc', borderRadius:0},
+        {label:'Recall %', data:algoData.recall, backgroundColor:'#06b6d4cc', borderRadius:0},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top',labels:{font:{size:11},boxWidth:12}} },
+      scales:{
+        x:{stacked:false}, y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}},
+      }
+    }
+  });
+})();
+
+// ── 7. Bubble Chart ───────────────────────────────
+(function(){
+  const ctx = document.getElementById('bubbleChart').getContext('2d');
+  const bubbles = algoData.labels.map((n,i)=>({
+    x: algoData.execution_time?.[i] || 0,
+    y: algoData.accuracy?.[i] || 0,
+    r: Math.max(6, (algoData.f1?.[i]||50)/10),
+  }));
+  new Chart(ctx,{
+    type:'bubble',
+    data:{
+      datasets: algoData.labels.map((n,i)=>({
+        label: n,
+        data:[bubbles[i]],
+        backgroundColor: COLORS[i]+'88',
+        borderColor: COLORS[i],
+        borderWidth:2,
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'right',labels:{font:{size:9},boxWidth:10}} },
+      scales:{
+        x:{title:{display:true,text:'Execution Time (s)'}},
+        y:{beginAtZero:true,max:100,title:{display:true,text:'Accuracy %'}}
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

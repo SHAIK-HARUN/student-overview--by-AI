@@ -1,0 +1,85 @@
+{% extends "base/base.html" %}
+{% block title %}Student Records — Teacher AI Portal{% endblock %}
+{% block page_title %}👥 Students Managed by Class Teacher{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-people-fill text-primary me-2"></i>
+      <span class="fw-700">All Student Records ({{ students|length }})</span>
+      <span class="text-muted small ms-2">Teacher: {{ teacher.full_name|default:teacher.username }}</span>
+    </div>
+    <a href="{% url 'add_student' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+      <i class="bi bi-person-plus-fill"></i> Add Student &amp; Predict
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th>#</th>
+            <th>Fid (Student ID)</th>
+            <th>Student Name</th>
+            <th>Scores (M/R/W)</th>
+            <th>OJ Tasks</th>
+            <th>Parent Contact</th>
+            <th>Added On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><code class="fw-700">{{ s.fid }}</code></td>
+            <td class="fw-600">{{ s.student_name|default:"—" }}<br><span class="text-muted small">{{ s.gender|title }} &bull; Age {{ s.age }} &bull; {{ s.degree_t }}</span></td>
+            <td>
+              <span class="badge bg-light text-dark border">📐 {{ s.math_score }}</span>
+              <span class="badge bg-light text-dark border">📖 {{ s.reading_score }}</span>
+              <span class="badge bg-light text-dark border">✍️ {{ s.writing_score }}</span>
+              <div class="small fw-700 text-primary mt-1">Avg: {{ s.average_score }}%</div>
+            </td>
+            <td class="small">
+              <div>Time: {% if s.solving_tasks_by_time == '1' or s.solving_tasks_by_time|lower == 'yes' %}<span class="text-success fw-600">On Time</span>{% else %}<span class="text-danger">Late</span>{% endif %}</div>
+              <div>Date: {% if s.taks_submitted_on_date == '1' or s.taks_submitted_on_date|lower == 'yes' %}<span class="text-success fw-600">On Date</span>{% else %}<span class="text-danger">Late</span>{% endif %}</div>
+              <div class="text-muted">Internships: {{ s.internships }}</div>
+            </td>
+            <td>
+              <div class="fw-600 small">{{ s.parent_name|default:"Parent" }}</div>
+              {% if s.parent_phone %}
+                <div class="small text-muted"><i class="bi bi-whatsapp text-success me-1"></i>{{ s.parent_phone }}</div>
+              {% endif %}
+              {% if s.parent_email %}
+                <div class="small text-muted"><i class="bi bi-envelope text-primary me-1"></i>{{ s.parent_email }}</div>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ s.created_at|date:"d M Y" }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{% url 'add_student' %}?fid={{ s.fid }}" class="btn btn-sm btn-outline-primary" title="Predict / Update">
+                  <i class="bi bi-cpu"></i> Predict
+                </a>
+                {% if s.parent_phone %}
+                <a href="https://api.whatsapp.com/send?phone={{ s.parent_phone }}" target="_blank" class="btn btn-sm btn-outline-success" title="WhatsApp Parent">
+                  <i class="bi bi-whatsapp"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="bi bi-person-plus fs-1 d-block mb-3 opacity-25"></i>
+              <p>No student records added yet.</p>
+              <a href="{% url 'add_student' %}" class="btn btn-primary">Add Your First Student</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

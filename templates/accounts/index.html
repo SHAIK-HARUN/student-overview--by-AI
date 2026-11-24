@@ -1,0 +1,104 @@
+{% extends "base/base.html" %}
+{% block title %}Teacher AI Portal — Student Profile Intelligence{% endblock %}
+{% block auth_content %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{font-family:'Inter',sans-serif}
+  .hero{min-height:100vh;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4f46e5 100%);display:flex;align-items:center;}
+  .hero h1{font-size:3.2rem;font-weight:800;color:#fff;line-height:1.15;}
+  .hero .lead{color:rgba(255,255,255,.75);font-size:1.15rem;}
+  .hero .badge-pill{background:rgba(255,255,255,.12);color:#a5b4fc;border-radius:50px;padding:.35rem .9rem;font-size:.82rem;font-weight:600;display:inline-block;margin-bottom:1rem;}
+  .feat-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:1.75rem;color:#fff;transition:all .2s;}
+  .feat-card:hover{background:rgba(255,255,255,.12);transform:translateY(-4px);}
+  .feat-card .icon{width:50px;height:50px;border-radius:.75rem;background:rgba(129,140,248,.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#818cf8;margin-bottom:1rem;}
+  .feat-card h6{color:#fff;font-weight:700;}
+  .feat-card p{color:rgba(255,255,255,.65);font-size:.88rem;}
+  .btn-hero-primary{background:#4f46e5;color:#fff;border:none;padding:.8rem 2rem;border-radius:.7rem;font-weight:700;font-size:1rem;transition:all .2s;text-decoration:none;display:inline-block;}
+  .btn-hero-primary:hover{background:#3730a3;color:#fff;transform:translateY(-2px);}
+  .btn-hero-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.4);padding:.8rem 2rem;border-radius:.7rem;font-weight:700;font-size:1rem;transition:all .2s;text-decoration:none;display:inline-block;}
+  .btn-hero-outline:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.08);}
+  .algo-pill{background:rgba(129,140,248,.15);color:#a5b4fc;border:1px solid rgba(129,140,248,.3);border-radius:50px;padding:.25rem .75rem;font-size:.78rem;font-weight:600;display:inline-block;margin:.2rem;}
+  .stats-strip{background:rgba(255,255,255,.06);border-radius:1rem;padding:1.5rem;border:1px solid rgba(255,255,255,.1);}
+  .stat-item{text-align:center;}
+  .stat-item .num{font-size:2rem;font-weight:800;color:#fff;}
+  .stat-item .lbl{font-size:.78rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:1px;}
+</style>
+</head>
+<body style="margin:0;padding:0;background:#1e1b4b;">
+
+<div class="hero">
+  <div class="container py-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="badge-pill"><i class="bi bi-mortarboard-fill me-1"></i> Class Teacher Academic Portal &bull; Explainable AI</div>
+        <h1>Teacher AI Portal<br>Student Profiling</h1>
+        <p class="lead mb-4">Class teachers can register, log in, add student details, predict performance profiles using 7 machine learning models, and automatically dispatch explainable AI reports to parents via Email and WhatsApp.</p>
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <a href="/login/" class="btn-hero-primary"><i class="bi bi-person-badge-fill me-2"></i>Teacher Login</a>
+          <a href="/register/" class="btn-hero-outline"><i class="bi bi-person-plus-fill me-2"></i>Create Teacher Account</a>
+          <a href="/admin-panel/login/" class="btn-hero-outline"><i class="bi bi-shield-lock-fill me-2"></i>Admin Login</a>
+        </div>
+        <div>
+          <span class="algo-pill">ANN</span>
+          <span class="algo-pill">Naive Bayes</span>
+          <span class="algo-pill">SVM</span>
+          <span class="algo-pill">Decision Tree</span>
+          <span class="algo-pill">Gradient Boosting</span>
+          <span class="algo-pill">KNN</span>
+          <span class="algo-pill">Logistic Regression</span>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <div class="feat-card">
+              <div class="icon"><i class="bi bi-person-plus-fill"></i></div>
+              <h6>Teacher Student Entry</h6>
+              <p>Teachers enter student Fid, OJ metrics, exam scores, and parent contact information.</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="feat-card">
+              <div class="icon"><i class="bi bi-whatsapp"></i></div>
+              <h6>Auto Parent Alerts</h6>
+              <p>Results and XAI feedback automatically dispatched to parents via Email & WhatsApp (+91 9182257621).</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="feat-card">
+              <div class="icon"><i class="bi bi-cpu-fill"></i></div>
+              <h6>Ensemble Prediction</h6>
+              <p>7 algorithms evaluate student profile with explainable diagnostic recommendations.</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="feat-card">
+              <div class="icon"><i class="bi bi-bar-chart-fill"></i></div>
+              <h6>Admin Analytics</h6>
+              <p>Service provider dashboard with dynamic bar, line, pie, doughnut & radar charts.</p>
+            </div>
+          </div>
+        </div>
+        <div class="stats-strip">
+          <div class="row g-3 text-center">
+            <div class="col-4 stat-item"><div class="num">7</div><div class="lbl">Algorithms</div></div>
+            <div class="col-4 stat-item"><div class="num">Teacher</div><div class="lbl">Student Control</div></div>
+            <div class="col-4 stat-item"><div class="num">Auto</div><div class="lbl">Parent Dispatch</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{% endblock %}

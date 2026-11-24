@@ -1,0 +1,131 @@
+{% extends "base/base.html" %}
+{% block title %}Train Model — Admin{% endblock %}
+{% block page_title %}🤖 Train AI Models{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-cpu-fill text-primary me-2"></i>Train All Algorithms</div>
+      <div class="card-body">
+        <p class="text-muted small mb-4">
+          Clicking <strong>Train</strong> will run all 7 ML algorithms on the student dataset, compute accuracy metrics, and save results for the analytics charts.
+        </p>
+        {% if error %}
+          <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}</div>
+        {% endif %}
+        <form method="POST" id="trainForm">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary w-100 py-3 fw-700" id="trainBtn">
+            <i class="bi bi-play-circle-fill me-2"></i>Start Training
+          </button>
+        </form>
+        <div id="trainSpinner" class="text-center mt-4 d-none">
+          <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;"></div>
+          <div class="mt-3 fw-600 text-muted">Training models... please wait</div>
+          <small class="text-muted">This may take 30–90 seconds depending on dataset size.</small>
+        </div>
+        <div class="mt-4">
+          <div class="d-flex flex-column gap-2">
+            <div class="d-flex align-items-center gap-2"><i class="bi bi-check2-circle text-success" style="font-size:.9rem;"></i><span class="small">Artificial Neural Network (ANN)</span></div>
+            <div class="d-flex align-items-center gap-2"><i class="bi bi-check2-circle text-success" style="font-size:.9rem;"></i><span class="small">Naive Bayes</span></div>
+            <div class="d-flex align-items-center gap-2"><i class="bi bi-check2-circle text-success" style="font-size:.9rem;"></i><span class="small">Support Vector Machine (SVM)</span></div>
+            <div class="d-flex align-items-center gap-2"><i class="bi bi-check2-circle text-success" style="font-size:.9rem;"></i><span class="small">Logistic Regression</span></div>
+            <div class="d-flex align-items-center gap-2"><i class="bi bi-check2-circle text-success" style="font-size:.9rem;"></i><span class="small">Gradient Boosting Classifier</span></div>
+            <div class="d-flex align-items-center gap-2"><i class="bi bi-check2-circle text-success" style="font-size:.9rem;"></i><span class="small">Decision Tree Classifier</span></div>
+            <div class="d-flex align-items-center gap-2"><i class="bi bi-check2-circle text-success" style="font-size:.9rem;"></i><span class="small">K-Nearest Neighbors (KNN)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    {% if results %}
+    <div class="card">
+      <div class="card-header"><i class="bi bi-check-circle-fill text-success me-2"></i>Training Results</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="bg-light">
+              <tr><th>Algorithm</th><th>Accuracy %</th><th>Precision %</th><th>Recall %</th><th>F1 %</th><th>Time (s)</th></tr>
+            </thead>
+            <tbody>
+              {% for r in results %}
+              <tr>
+                <td class="fw-600 small">{{ r.name }}</td>
+                <td>
+                  {% if r.error %}<span class="text-danger small">Error</span>
+                  {% else %}
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-700 text-primary">{{ r.accuracy }}</span>
+                    <div class="progress" style="height:6px;width:60px;">
+                      <div class="progress-bar bg-primary" style="width:{{ r.accuracy }}%"></div>
+                    </div>
+                  </div>
+                  {% endif %}
+                </td>
+                <td>{{ r.precision|default:"—" }}</td>
+                <td>{{ r.recall|default:"—" }}</td>
+                <td>{{ r.f1|default:"—" }}</td>
+                <td>{{ r.time|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-center">
+        <a href="{% url 'admin_charts' %}" class="btn btn-primary">
+          <i class="bi bi-bar-chart-fill me-2"></i>View Analytics Charts
+        </a>
+      </div>
+    </div>
+    {% elif algo_data %}
+    <div class="card">
+      <div class="card-header"><i class="bi bi-database-fill text-info me-2"></i>Existing Training Data</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="bg-light">
+              <tr><th>Algorithm</th><th>Accuracy %</th><th>Precision %</th><th>Recall %</th><th>F1 %</th><th>Time (s)</th></tr>
+            </thead>
+            <tbody>
+              {% for a in algo_data %}
+              <tr>
+                <td class="fw-600 small">{{ a.name }}</td>
+                <td><span class="fw-700 text-primary">{{ a.accuracy|floatformat:1 }}</span></td>
+                <td>{{ a.precision_score|floatformat:1 }}</td>
+                <td>{{ a.recall_score|floatformat:1 }}</td>
+                <td>{{ a.f1_score|floatformat:1 }}</td>
+                <td>{{ a.execution_time }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-center">
+        <a href="{% url 'admin_charts' %}" class="btn btn-outline-primary">
+          <i class="bi bi-bar-chart-fill me-2"></i>View Analytics Charts
+        </a>
+      </div>
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-cpu fs-1 d-block mb-3 opacity-25"></i>
+        <p>No training data yet. Click <strong>Start Training</strong> to train all models.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.getElementById('trainForm').addEventListener('submit', function(){
+  document.getElementById('trainBtn').disabled = true;
+  document.getElementById('trainBtn').innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Training...';
+  document.getElementById('trainSpinner').classList.remove('d-none');
+});
+</script>
+{% endblock %}

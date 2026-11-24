@@ -1,0 +1,113 @@
+{% extends "base/base.html" %}
+{% block title %}Teachers & Students — Service Provider Admin{% endblock %}
+{% block page_title %}👥 Registered Teachers &amp; Student Records{% endblock %}
+{% block content %}
+
+<!-- Teachers Section -->
+<div class="card mb-4">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-mortarboard-fill text-primary me-2"></i>
+      <span class="fw-700">Registered Class Teachers ({{ teachers|length }})</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th>#</th>
+            <th>Teacher Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone / WhatsApp</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Registered</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in teachers %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td class="fw-700">{{ t.full_name|default:t.username }}</td>
+            <td><code>{{ t.username }}</code></td>
+            <td>{{ t.email }}</td>
+            <td><i class="bi bi-whatsapp text-success me-1"></i>{{ t.phoneno|default:"—" }}</td>
+            <td>{{ t.department }}</td>
+            <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ t.designation }}</span></td>
+            <td class="text-muted small">{{ t.created_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No teachers registered yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Students Section -->
+<div class="card">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-people-fill text-success me-2"></i>
+      <span class="fw-700">Students Added by Teachers ({{ students|length }})</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th>#</th>
+            <th>Fid (Student ID)</th>
+            <th>Student Name</th>
+            <th>Class Teacher</th>
+            <th>Scores (M/R/W)</th>
+            <th>OJ Metrics</th>
+            <th>Parent Contact</th>
+            <th>Date Added</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td class="fw-700"><code>{{ s.fid }}</code></td>
+            <td class="fw-600">{{ s.student_name|default:"—" }}<br><span class="text-muted small">{{ s.gender|title }} &bull; Age {{ s.age }} &bull; {{ s.degree_t }}</span></td>
+            <td>
+              <span class="badge bg-info bg-opacity-10 text-dark">
+                {{ s.teacher.full_name|default:s.teacher.username|default:"General" }}
+              </span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">M: {{ s.math_score }}</span>
+              <span class="badge bg-light text-dark border">R: {{ s.reading_score }}</span>
+              <span class="badge bg-light text-dark border">W: {{ s.writing_score }}</span>
+              <div class="small fw-700 text-primary mt-1">Avg: {{ s.average_score }}%</div>
+            </td>
+            <td class="small">
+              <div>Time: {% if s.solving_tasks_by_time == '1' or s.solving_tasks_by_time|lower == 'yes' %}<span class="text-success fw-600">On Time</span>{% else %}<span class="text-danger">Late</span>{% endif %}</div>
+              <div>Date: {% if s.taks_submitted_on_date == '1' or s.taks_submitted_on_date|lower == 'yes' %}<span class="text-success fw-600">On Date</span>{% else %}<span class="text-danger">Late</span>{% endif %}</div>
+            </td>
+            <td>
+              <div class="fw-600 small">{{ s.parent_name|default:"Parent" }}</div>
+              {% if s.parent_phone %}
+                <div class="small text-muted"><i class="bi bi-whatsapp text-success me-1"></i>{{ s.parent_phone }}</div>
+              {% endif %}
+              {% if s.parent_email %}
+                <div class="small text-muted"><i class="bi bi-envelope text-primary me-1"></i>{{ s.parent_email }}</div>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ s.created_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No student records created by teachers yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

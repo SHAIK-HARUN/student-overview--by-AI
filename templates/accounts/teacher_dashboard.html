@@ -1,0 +1,130 @@
+{% extends "base/base.html" %}
+{% block title %}Teacher Dashboard — Teacher AI Portal{% endblock %}
+{% block page_title %}👨‍🏫 Class Teacher Dashboard{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+  <!-- Stat cards -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card primary">
+      <i class="bi bi-people-fill stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ total_students }}</div>
+        <div class="stat-label">Students Managed</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card info">
+      <i class="bi bi-cpu-fill stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ total_predictions }}</div>
+        <div class="stat-label">Predictions Run</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card success">
+      <i class="bi bi-star-fill stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ excellent_count }}</div>
+        <div class="stat-label">Excellent Profiles</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card danger">
+      <i class="bi bi-exclamation-triangle-fill stat-icon"></i>
+      <div>
+        <div class="stat-num">{{ poor_count }}</div>
+        <div class="stat-label">Needs Attention</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Quick Actions -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Teacher Actions</div>
+      <div class="card-body">
+        <a href="{% url 'add_student' %}" class="btn btn-primary w-100 mb-3 py-3 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-person-plus-fill fs-5"></i><span class="fw-700">Add Student &amp; Predict</span>
+        </a>
+        <a href="{% url 'student_list' %}" class="btn btn-outline-primary w-100 mb-2 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-people-fill"></i><span>View All Students ({{ total_students }})</span>
+        </a>
+        <a href="{% url 'prediction_history' %}" class="btn btn-outline-secondary w-100 mb-2 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-clock-history"></i><span>Prediction &amp; Dispatch History</span>
+        </a>
+        <a href="{% url 'profile_view' %}" class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-person-circle"></i><span>Teacher Profile</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teacher Profile Card -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-mortarboard-fill text-primary me-2"></i>Class Teacher Details</div>
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div style="width:60px;height:60px;border-radius:1rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;font-weight:800;">
+            {{ teacher.full_name|first|upper|default:teacher.username|first|upper }}
+          </div>
+          <div>
+            <div class="fw-700 fs-5">{{ teacher.full_name|default:teacher.username }}</div>
+            <div class="text-muted small">{{ teacher.designation }} &bull; {{ teacher.department }}</div>
+          </div>
+        </div>
+        <table class="table table-sm table-borderless">
+          <tr><td class="text-muted small">📧 Email</td><td class="small fw-500">{{ teacher.email }}</td></tr>
+          <tr><td class="text-muted small">📱 Phone</td><td class="small fw-500">{{ teacher.phoneno|default:"—" }}</td></tr>
+          <tr><td class="text-muted small">🏢 Dept</td><td class="small fw-500">{{ teacher.department|default:"Computer Science" }}</td></tr>
+          <tr><td class="text-muted small">📍 Location</td><td class="small fw-500">{{ teacher.city|default:"Campus" }}, {{ teacher.state|default:"India" }}</td></tr>
+        </table>
+        <div class="alert alert-info py-2 small mt-2">
+          <i class="bi bi-info-circle-fill me-1"></i>
+          Official College Outbound: <strong>shaikashfaq911@gmail.com</strong> &amp; WhatsApp: <strong>+91 9182257621</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Student Predictions -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-clock-history text-info me-2"></i>Recent Predictions</div>
+      <div class="card-body p-0">
+        {% if predictions %}
+          <div class="list-group list-group-flush">
+            {% for pred in predictions %}
+            <a href="{% url 'result_view' pred.pk %}" class="list-group-item list-group-item-action px-3 py-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-700 small">{{ pred.fid }}</div>
+                  <div class="text-muted" style="font-size:.78rem;">{{ pred.student_name|default:"Student" }} &bull; {{ pred.predicted_at|date:"d M, h:i A" }}</div>
+                </div>
+                <div class="text-end">
+                  <span class="badge badge-{{ pred.prediction|lower }}">{{ pred.prediction }}</span>
+                  <div class="small text-muted" style="font-size:.7rem;">
+                    {% if pred.notification_sent %}<span class="text-success"><i class="bi bi-check-circle-fill"></i> Sent to Parent</span>{% else %}<span class="text-warning">Pending</span>{% endif %}
+                  </div>
+                </div>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-person-plus fs-1 d-block mb-2 opacity-25"></i>
+            <p class="small">No students added yet.<br>Add your first student to predict!</p>
+            <a href="{% url 'add_student' %}" class="btn btn-sm btn-primary">Add Student Now</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

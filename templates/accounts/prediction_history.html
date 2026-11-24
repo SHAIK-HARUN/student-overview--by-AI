@@ -1,0 +1,78 @@
+{% extends "base/base.html" %}
+{% block title %}Prediction & Dispatch History — Teacher AI Portal{% endblock %}
+{% block page_title %}🕐 Student Prediction &amp; Parent Notification History{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-clock-history text-primary me-2"></i>
+      <span class="fw-700">All Student Predictions ({{ predictions|length }})</span>
+      <span class="text-muted small ms-2">Teacher: {{ teacher.full_name|default:teacher.username }}</span>
+    </div>
+    <a href="{% url 'add_student' %}" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
+      <i class="bi bi-person-plus-fill"></i> Add Student &amp; Predict
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if predictions %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th>#</th>
+            <th>Fid (Student ID)</th>
+            <th>Student Name</th>
+            <th>Scores (M/R/W)</th>
+            <th>Avg Score</th>
+            <th>AI Profile</th>
+            <th>Parent Notified</th>
+            <th>Predicted At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pred in predictions %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td class="fw-700"><code>{{ pred.fid }}</code></td>
+            <td class="fw-600">{{ pred.student_name|default:pred.student.student_name|default:"—" }}</td>
+            <td>
+              <span class="badge bg-light text-dark border">📐 {{ pred.math_score }}</span>
+              <span class="badge bg-light text-dark border">📖 {{ pred.reading_score }}</span>
+              <span class="badge bg-light text-dark border">✍️ {{ pred.writing_score }}</span>
+            </td>
+            <td class="fw-700 text-primary">{{ pred.average_score }}%</td>
+            <td><span class="badge badge-{{ pred.prediction|lower }} px-3 py-1">{{ pred.prediction }}</span></td>
+            <td>
+              {% if pred.notification_sent %}
+                <span class="text-success small fw-600"><i class="bi bi-check-circle-fill me-1"></i>Sent</span>
+              {% else %}
+                <span class="text-muted small"><i class="bi bi-dash-circle me-1"></i>Pending</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ pred.predicted_at|date:"d M Y, h:i A" }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{% url 'result_view' pred.pk %}" class="btn btn-sm btn-outline-primary" title="View Full AI Report">
+                  <i class="bi bi-eye"></i> Report
+                </a>
+                <a href="{% url 'regenerate_result' pred.pk %}" class="btn btn-sm btn-outline-warning" title="Regenerate & Re-notify Parents">
+                  <i class="bi bi-arrow-clockwise"></i> Re-notify
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-cpu fs-1 d-block mb-3 opacity-25"></i>
+      <p>No student predictions found for this teacher.</p>
+      <a href="{% url 'add_student' %}" class="btn btn-primary">Add Student &amp; Predict Profile</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
