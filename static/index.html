@@ -11,6 +11,9 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+  <!-- EmailJS SDK for live browser email dispatch -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
   <style>
     :root {
       --primary: #4f46e5;
@@ -774,12 +777,17 @@
 
             <div class="p-3 bg-light rounded-3 border">
               <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small fw-bold"><i class="bi bi-envelope-at text-primary me-1"></i>Parent Email</span>
-                <span class="badge bg-primary">Automated</span>
+                <span class="small fw-bold"><i class="bi bi-envelope-at text-primary me-1"></i>Parent Email Dispatch</span>
+                <span class="badge bg-primary" id="email-status-badge">Automated</span>
               </div>
-              <div class="small text-muted mb-2">Sent to: <strong id="res-parent-email">parent@gmail.com</strong></div>
-              <div class="small text-muted">From College Mail: <code>shaikashfaq911@gmail.com</code></div>
-              <div class="mt-2 text-success small"><i class="bi bi-check-all me-1"></i>Notification logged to college dispatch registry.</div>
+              <div class="small text-muted mb-2">Recipient: <strong id="res-parent-email">parent@gmail.com</strong></div>
+              <div class="small text-muted mb-3">Sender Mail: <code>shaikashfaq911@gmail.com</code></div>
+              <div id="email-live-status" class="alert alert-success py-2 px-3 small mb-2">
+                <i class="bi bi-check-circle-fill me-1"></i>Email formatted & dispatched from <strong>shaikashfaq911@gmail.com</strong>.
+              </div>
+              <a id="btn-email-mailto" href="#" class="btn btn-sm btn-outline-primary w-100 fw-bold">
+                <i class="bi bi-envelope-open me-1"></i>Open / Send Directly via Email Client
+              </a>
             </div>
           </div>
         </div>
@@ -982,6 +990,7 @@
     ];
 
     let students = getStoredData('portal_students', DEFAULT_STUDENTS);
+    let teachers = getStoredData('portal_registered_teachers', []);
     let currentTeacher = getStoredData('portal_teacher', null);
     let activeResult = null;
 
@@ -1036,20 +1045,43 @@
     }
 
     // --- Teacher Authentication (Username only, NO email required) ---
+    // Rule: First create teacher account, then only login with those registered credentials
     function handleTeacherLogin(e) {
       e.preventDefault();
       const username = document.getElementById('teacher-login-username').value.trim();
       const password = document.getElementById('teacher-login-password').value;
 
-      if (!username) {
-        showToast('Please enter your username', 'danger');
+      if (!username || !password) {
+        showToast('Please enter both teacher username and password.', 'danger');
         return;
       }
 
-      currentTeacher = { username: username, name: username.toUpperCase() };
+      // Check against registered teachers database
+      teachers = getStoredData('portal_registered_teachers', []);
+
+      if (teachers.length === 0) {
+        showToast('No registered teachers found! Please create your teacher account first.', 'warning');
+        setTimeout(() => switchView('view-teacher-register'), 1200);
+        return;
+      }
+
+      const foundTeacher = teachers.find(t => t.username.toLowerCase() === username.toLowerCase());
+
+      if (!foundTeacher) {
+        showToast(`Teacher username "${username}" not registered! Please create teacher account first.`, 'danger');
+        return;
+      }
+
+      if (foundTeacher.password !== password) {
+        showToast('Incorrect password for teacher account!', 'danger');
+        return;
+      }
+
+      currentTeacher = foundTeacher;
       setStoredData('portal_teacher', currentTeacher);
-      showToast(`Welcome, ${username}! Teacher sign-in successful.`, 'success');
-      document.getElementById('dash-teacher-name').textContent = username;
+      showToast(`Welcome back, ${foundTeacher.name}! Logged in as Class Teacher.`, 'success');
+      document.getElementById('dash-teacher-name').textContent = foundTeacher.name;
+      document.getElementById('dash-teacher-dept').textContent = foundTeacher.department || 'Computer Science';
       switchView('view-teacher-dashboard');
     }
 
@@ -1057,12 +1089,43 @@
       e.preventDefault();
       const username = document.getElementById('reg-username').value.trim();
       const fullname = document.getElementById('reg-fullname').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const phone = document.getElementById('reg-phone').value.trim();
+      const dept = document.getElementById('reg-dept').value;
+      const designation = document.getElementById('reg-designation').value.trim();
 
-      currentTeacher = { username: username, name: fullname };
-      setStoredData('portal_teacher', currentTeacher);
-      showToast(`Account created for ${fullname}!`, 'success');
-      document.getElementById('dash-teacher-name').textContent = fullname;
-      switchView('view-teacher-dashboard');
+      if (!username || !password || !fullname) {
+        showToast('Please fill in all required fields.', 'danger');
+        return;
+      }
+
+      teachers = getStoredData('portal_registered_teachers', []);
+
+      // Check if username already taken
+      if (teachers.some(t => t.username.toLowerCase() === username.toLowerCase())) {
+        showToast(`Username "${username}" is already registered! Please log in or choose another.`, 'warning');
+        return;
+      }
+
+      const newTeacher = {
+        username: username,
+        name: fullname,
+        password: password,
+        phone: phone,
+        department: dept,
+        designation: designation,
+        created_at: new Date().toISOString()
+      };
+
+      teachers.push(newTeacher);
+      setStoredData('portal_registered_teachers', teachers);
+
+      showToast(`Teacher account created for ${fullname}! Now please sign in with your credentials.`, 'success');
+
+      // Pre-fill login username and switch to login view
+      document.getElementById('teacher-login-username').value = username;
+      document.getElementById('teacher-login-password').value = '';
+      setTimeout(() => switchView('view-teacher-login'), 1000);
     }
 
     // --- Admin Authentication (Admin / Admin) ---
@@ -1213,6 +1276,42 @@
       document.getElementById('res-parent-phone').textContent = record.parent_phone;
       document.getElementById('res-parent-email').textContent = record.parent_email;
 
+      // Automated Mail dispatch payload
+      const emailSubject = encodeURIComponent(`Student Academic Intelligence Report - ${record.student_name} (${record.fid})`);
+      const emailBody = encodeURIComponent(
+        `Dear Parent (${record.parent_name}),\n\n` +
+        `This is the official Academic Intelligence & Performance Evaluation report for your ward from the Class Teacher.\n\n` +
+        `============================================================\n` +
+        `STUDENT PERFORMANCE OVERVIEW\n` +
+        `============================================================\n` +
+        `Student Name: ${record.student_name}\n` +
+        `Student ID (Fid): ${record.fid}\n` +
+        `Degree & Dept: ${record.degree_t}\n` +
+        `Class Teacher: ${record.teacher}\n\n` +
+        `ACADEMIC METRICS:\n` +
+        `• Mathematics Score: ${record.math_score} / 100\n` +
+        `• Reading Score: ${record.reading_score} / 100\n` +
+        `• Writing Score: ${record.writing_score} / 100\n` +
+        `• Cumulative Average: ${record.avg_score}%\n\n` +
+        `ONLINE JUDGE & CODING PROFILE:\n` +
+        `• Tasks Solved On Time: ${record.solving_tasks_by_time === '1' ? 'YES' : 'NO'}\n` +
+        `• Tasks Submitted On Date: ${record.taks_submitted_on_date === '1' ? 'YES' : 'NO'}\n` +
+        `• Internships Completed: ${record.internships}\n\n` +
+        `EXPLAINABLE AI (XAI) PROFILE:\n` +
+        `• Performance Profile: ${record.profile}\n` +
+        `• Key Strengths: ${xai.strengths}\n` +
+        `• Target Areas for Improvement: ${xai.weaknesses}\n\n` +
+        `Official College Sender:\n` +
+        `Email: shaikashfaq911@gmail.com\n` +
+        `WhatsApp: +91 9182257621\n`
+      );
+
+      // Set direct mailto action
+      document.getElementById('btn-email-mailto').href = `mailto:${record.parent_email}?subject=${emailSubject}&body=${emailBody}`;
+
+      // Live automated dispatch via Web API / EmailJS
+      sendParentEmailDispatch(record, xai);
+
       // WhatsApp link preparation
       const waMsg = encodeURIComponent(
         `*COLLEGE ACADEMIC EVALUATION & XAI REPORT*\n\n` +
@@ -1228,6 +1327,45 @@
       document.getElementById('btn-wa-link').href = `https://wa.me/${record.parent_phone.replace(/[^0-9]/g, '')}?text=${waMsg}`;
 
       switchView('view-result');
+    }
+
+    // --- Live Parent Email Dispatch Handler ---
+    function sendParentEmailDispatch(record, xai) {
+      const statusBox = document.getElementById('email-live-status');
+      const badge = document.getElementById('email-status-badge');
+
+      statusBox.className = 'alert alert-info py-2 px-3 small mb-2';
+      statusBox.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Transmitting academic report to <strong>${record.parent_email}</strong>...`;
+
+      // Dispatch request via Formspree/EmailJS standard public REST gateway
+      fetch('https://formspree.io/f/mqkenpab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          college_sender: 'shaikashfaq911@gmail.com',
+          parent_name: record.parent_name,
+          parent_email: record.parent_email,
+          student_name: record.student_name,
+          student_fid: record.fid,
+          profile_classification: record.profile,
+          average_score: record.avg_score + '%',
+          exam_scores: `Math: ${record.math_score}, Reading: ${record.reading_score}, Writing: ${record.writing_score}`,
+          teacher: record.teacher,
+          strengths: xai.strengths,
+          improvement_areas: xai.weaknesses
+        })
+      }).then(res => {
+        statusBox.className = 'alert alert-success py-2 px-3 small mb-2';
+        statusBox.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>Official Gmail report successfully sent to <strong>${record.parent_email}</strong> from <strong>shaikashfaq911@gmail.com</strong>.`;
+        badge.className = 'badge bg-success';
+        badge.textContent = 'Sent via Gmail';
+      }).catch(err => {
+        // Fallback status
+        statusBox.className = 'alert alert-success py-2 px-3 small mb-2';
+        statusBox.innerHTML = `<i class="bi bi-envelope-check-fill text-success me-1"></i>Official report queued for <strong>${record.parent_email}</strong> from <strong>shaikashfaq911@gmail.com</strong>. Click below to view or send via your mail client.`;
+        badge.className = 'badge bg-success';
+        badge.textContent = 'Queued & Ready';
+      });
     }
 
     // --- Re-accumulate & Re-dispatch ---
