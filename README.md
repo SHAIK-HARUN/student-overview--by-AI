@@ -1,79 +1,96 @@
-# Teacher Academic Intelligence & Profiling Portal (XAI)
+# Teacher & Student Academic Intelligence Portal (XAI-Driven)
 
-A modern, responsive web application designed for **Class Teachers** to record student academic and Online Judge submission metrics, predict performance profiles (`Excellent`, `Good`, `Average`, `Poor`) using Explainable Artificial Intelligence (XAI) ensemble models, and automatically dispatch diagnostic feedback reports to **Parents** via **Email** (`shaikashfaq911@gmail.com`) and **WhatsApp** (`+91 9182257621`).
-
----
-
-## 🌟 Key Architecture & Workflows
-
-### 1. Teacher Portal (`/register/`, `/login/`, `/dashboard/`)
-1. **Teacher Registration**:
-   - Class Teachers create their own accounts with:
-     - Full Name & Username
-     - Official Email & Phone / WhatsApp number
-     - Department (e.g. Computer Science) & Designation (e.g. Class Teacher)
-     - Campus / Office location
-2. **Teacher Dashboard**:
-   - Displays real-time statistics: Total Students Managed, Predictions Run, Excellent Profiles, and Profiles Needing Attention.
-   - Quick actions to Add Student & Predict, View All Students, and access Full Dispatch History.
-3. **Add Student Details & Predict (`/add-student/`)**:
-   - Teachers enter complete student attributes as requested:
-     - `id` / `Fid` (Student Roll No / Online Judge ID)
-     - `student_name` (Student Full Name)
-     - `age`
-     - `gender`
-     - `lunch` (standard, free/reduced)
-     - `parental_level_of_education` (bachelor's, master's, associate's, some college, high school, some high school)
-     - `degree_t` (Sci&Tech, Comm&Mgmt, Others)
-     - `race_ethnicity` (group A, group B, group C, group D, group E)
-     - `test_preparation_course` (completed, none)
-     - `math_score`, `reading_score`, `writing_score` (0 – 100 with interactive range sliders)
-     - `Internships` (0, 1, 2, 3+)
-     - `solving_tasks_by_time` (1 = On Time, 0 = Late)
-     - `taks_submitted_on_date` (1 = On Date, 0 = Delayed)
-     - **Parent Contact Information**: `parent_name`, `parent_phone` (WhatsApp), `parent_email`.
-4. **AI Prediction & Automated Parent Dispatch**:
-   - Predicts profile (`Excellent`, `Good`, `Average`, `Poor`) via a voting ensemble of 7 machine learning models.
-   - Generates Explainable AI (XAI) strengths, areas needing attention, and study recommendations.
-   - **Email to Parent**: Sent from `shaikashfaq911@gmail.com`.
-   - **WhatsApp to Parent**: Formatted alert sent from college number `+91 9182257621`, with 1-click Direct WhatsApp trigger button.
-5. **Regenerate & Direct Accumulation**:
-   - Teachers can click **"Regenerate Result & Re-notify Parents"** on any student result to recalculate and instantly re-dispatch updated reports to the parents.
+A modern Django web portal powered by Explainable Artificial Intelligence (XAI) and ensemble machine learning algorithms to evaluate student performance profiles and automatically dispatch academic feedback notifications to parents and teachers via Email (Gmail SMTP) and WhatsApp.
 
 ---
 
-### 2. Service Provider Admin Dashboard (`/admin-panel/`)
-- **Credentials**: `Admin` / `Admin`
-- **Model Training (`/admin-panel/train/`)**:
-  - Trains and benchmarks 7 algorithms on `Datasets.csv`:
-    1. Artificial Neural Network (ANN / MLPClassifier)
-    2. Naive Bayes (MultinomialNB)
-    3. Support Vector Machine (Linear SVC)
-    4. Logistic Regression
-    5. Gradient Boosting Classifier
-    6. Decision Tree Classifier
-    7. K-Nearest Neighbors (KNN)
-- **Advanced Interactive Charts (`/admin-panel/charts/`)**:
-  - **Bar Chart**: Algorithm accuracy comparison.
-  - **Line Chart**: Multi-metric performance trends across models.
-  - **Pie & Doughnut Charts**: Student profile category distribution.
-  - **Multi-Metric Radar Chart**: Precision, Recall, Accuracy, and F1-score comparison.
-  - **Polar Area Chart**: Profile distribution.
-  - **Execution Time Bar Chart**: Model training time benchmarks.
-  - **Bubble Chart**: Accuracy vs. Execution time trade-off.
-- **Auditing**: View all registered Class Teachers, Student Records, Predictions, and Notification audit logs.
+## 🚀 Key Features
+
+1. **Teacher Portal**:
+   - **Simple Teacher Authentication**: Sign in using **Username only** (no email requested during login).
+   - **Student Record Intake**: Full entry covering all 15 parameters:
+     - `id`, `Fid`, `age`, `gender`, `lunch`, `parental_level_of_education`, `degree_t`, `race_ethnicity`, `test_preparation_course`, `math_score`, `reading_score`, `writing_score`, `Internships`, `solving_tasks_by_time`, `taks_submitted_on_date`.
+   - **AI Ensemble Prediction**: Generates profile classification (`Excellent`, `Good`, `Average`, `Poor`) with automated explainable AI (XAI) diagnostics.
+   - **Automated Re-dispatch**: Whenever a teacher updates or regenerates a result, updated academic reports are immediately accumulated and dispatched to the student's parents.
+
+2. **Automated Notification System**:
+   - **Official College Email Sender**: `shaikashfaq911@gmail.com`
+   - **Official College WhatsApp Sender**: `+91 9182257621`
+   - Formatted parent reports with academic score cards, performance categories, and strengths/weaknesses breakdown.
+   - Fallback `wa.me` instant dispatch links generated for one-click manual or automated delivery.
+
+3. **Service Provider / Admin Panel**:
+   - Credentials: Username `Admin` / Password `Admin`.
+   - Visual algorithm evaluation suite featuring **7 Algorithms**:
+     - Multilayer Perceptron (MLP/ANN)
+     - Naive Bayes
+     - Linear Support Vector Machine (Linear SVC)
+     - Logistic Regression
+     - Gradient Boosting Classifier
+     - Decision Tree Classifier
+     - K-Nearest Neighbors (KNN)
+   - Interactive visualizations via **Chart.js**: Line charts, Bar charts, Pie charts, Radar charts, Doughnut charts, and Polar Area charts.
+   - System audit trail with real-time delivery logs of all emails and WhatsApp notifications.
 
 ---
 
-## 🚀 How to Run
+## 🛠️ Tech Stack & Deployment Readiness
+
+- **Framework**: Django 5.x
+- **Frontend**: Bootstrap 5, Bootstrap Icons, Chart.js
+- **Machine Learning**: Scikit-learn, Pandas, NumPy
+- **Static Asset Serving**: Whitenoise 6.x (configured with `CompressedManifestStaticFilesStorage`)
+- **Serverless Adapter**: Mangum + Netlify Functions (`netlify/functions/handler.py`)
+- **Production Server**: Gunicorn (Procfile included)
+
+---
+
+## 📦 How to Push to GitHub
+
+From the `student_portal` directory:
 
 ```bash
-cd "d:\Final year code\Identifying Student Profiles within Online Judge systems using Explainable Artificial Intelligence-20240202T085446Z-001 (1)\student_portal"
-python manage.py runserver
+# Check current commit
+git status
+
+# Add your GitHub repository as remote origin (replace with your repository URL)
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+
+# Set main branch
+git branch -M main
+
+# Push to GitHub
+git push -u origin main
 ```
 
-Then visit:
-- **Home Page**: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-- **Teacher Login**: [http://127.0.0.1:8000/login/](http://127.0.0.1:8000/login/)
-- **Teacher Registration**: [http://127.0.0.1:8000/register/](http://127.0.0.1:8000/register/)
-- **Admin / Service Provider**: [http://127.0.0.1:8000/admin-panel/login/](http://127.0.0.1:8000/admin-panel/login/)
+---
+
+## 🌐 Deployment Instructions
+
+### Option 1: Deploying to Netlify
+1. Connect your GitHub repository to [Netlify](https://app.netlify.com/).
+2. Netlify will automatically detect `netlify.toml`:
+   - **Build command**: `python -m pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput`
+   - **Publish directory**: `staticfiles`
+   - **Functions directory**: `netlify/functions`
+3. Under **Site Configuration > Environment Variables**, add:
+   - `EMAIL_HOST_USER`: `shaikashfaq911@gmail.com`
+   - `EMAIL_HOST_PASSWORD`: `<your-16-char-gmail-app-password>`
+   - `COLLEGE_WHATSAPP_NUMBER`: `+919182257621`
+   - `SECRET_KEY`: `<your-django-secret-key>`
+4. Trigger deploy.
+
+> **Note on Netlify Serverless Storage**: Netlify functions operate in an ephemeral AWS Lambda runtime. The project settings automatically handle this by routing the SQLite database to `/tmp/db.sqlite3` and running migrations automatically on cold start. For persistent multi-user databases across global Lambda restarts, connecting an external database URL (e.g. Supabase, Neon, or Railway PostgreSQL) via `DATABASE_URL` is recommended.
+
+### Option 2: Deploying to Render / Railway / PythonAnywhere (Recommended for persistent Django SQLite/Postgres)
+1. Link your GitHub repo to **Render** or **Railway**.
+2. Set Build Command: `pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput`
+3. Set Start Command: `gunicorn student_portal.wsgi:application`
+4. The included `Procfile` is recognized out of the box.
+
+---
+
+## 🔐 Default Admin Credentials
+- **URL**: `/admin-portal/login/`
+- **Username**: `Admin`
+- **Password**: `Admin`
