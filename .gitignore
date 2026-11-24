@@ -43,8 +43,7 @@ env.bak/
 venv.bak/
 
 # Static files cache (whitenoise generated)
-# Note: commit static/, but ignore collected staticfiles
-staticfiles/
+# Note: commit static and staticfiles for Netlify publish target compatibility
 
 # IDE files
 .vscode/
