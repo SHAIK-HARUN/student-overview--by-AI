@@ -8,17 +8,18 @@ sys.path.insert(0, str(BASE_DIR))
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'student_portal.settings')
 
-# Ensure migrations are applied in serverless environment
+# Ensure Django setup and serverless migrations
+import django
+django.setup()
+
 try:
-    import django
-    django.setup()
     from django.core.management import call_command
     call_command('migrate', interactive=False)
 except Exception as e:
     print(f"Serverless migration setup info: {e}")
 
 from student_portal.wsgi import application
-from mangum import Mangum
+import serverless_wsgi
 
-# Mangum wraps ASGI/WSGI applications to run on AWS Lambda / Netlify Functions
-handler = Mangum(application)
+def handler(event, context):
+    return serverless_wsgi.handle_wsgi(application, event, context)

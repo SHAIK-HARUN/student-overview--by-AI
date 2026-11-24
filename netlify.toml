@@ -1,7 +1,9 @@
 [build]
   command = "python -m pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput"
   publish = "staticfiles"
-  functions = "netlify/functions"
+
+[functions]
+  directory = "netlify/functions"
 
 [build.environment]
   PYTHON_VERSION = "3.11"
@@ -9,9 +11,9 @@
 
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/handler/:splat"
+  to = "/.netlify/functions/handler"
   status = 200
-  force = false
+  force = true
 
 [[headers]]
   for = "/static/*"

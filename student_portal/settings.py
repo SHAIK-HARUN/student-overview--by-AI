@@ -97,7 +97,7 @@ EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'shaikashfaq911@gmail.com')
 # Gmail App Password (16 characters, e.g. "abcd efgh ijkl mnop")
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'wman clnx uaih gcrt')
-DEFAULT_FROM_EMAIL = f"Student Academic Intelligence <{EMAIL_HOST_USER}>"
+DEFAULT_FROM_EMAIL = f"Harun Academic Intelligence <{EMAIL_HOST_USER}>"
 SERVER_EMAIL = EMAIL_HOST_USER
 
 # WhatsApp Configuration (College official number)
